@@ -29,9 +29,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    char buffer[999];
+    char* buffer = malloc(999);
     f = popen("objdump -d tmp.o", "r");
-    buffer[fread(buffer, sizeof(*buffer), sizeof(buffer), f)] = '\0';
+    buffer[fread(buffer, sizeof(*buffer), 999, f)] = '\0';
     pclose(f);
 
     int scount = 0;
@@ -39,5 +39,9 @@ int main(int argc, char** argv) {
     for ( ; scount < 4; i++)
         if (buffer[i] == ':')
             scount++;
-    puts((char*)((long)buffer + i));
+    buffer = (char*)((long)buffer + i);
+    for (i = 0; i < strlen(buffer); i++)
+        if (buffer[i] == '\n')
+            buffer[i] = 0;
+    puts(buffer);
 }
