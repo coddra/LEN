@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     tmp[0] = '\t';
     tmp[1] = 0;
     tmp = strcat(tmp, argv[1]);
-    tmp = strcat(tmp, "\t");
+    tmp = strcat(tmp, argc > 2 ? "\t" : "\n");
     for (int i = 2; i < argc; i++) {
         tmp = strcat(tmp, argv[i]);
         tmp = strcat(tmp, i == argc - 1 ? "\n" : " ");
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     int res = system("as tmp.s -o tmp.o");
     if (res) {
         printf("error: as returned exit status %d", res);
-        return 1;
+        return res;
     }
 
     char* buffer = malloc(999);
@@ -39,9 +39,9 @@ int main(int argc, char** argv) {
     for ( ; scount < 4; i++)
         if (buffer[i] == ':')
             scount++;
-    buffer = (char*)((long)buffer + i);
+    buffer = (char*)((long)buffer + i + 1);
     for (i = 0; i < strlen(buffer); i++)
-        if (buffer[i] == '\n')
+        if (buffer[i] == '\t')
             buffer[i] = 0;
     puts(buffer);
 }
