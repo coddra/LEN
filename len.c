@@ -2,31 +2,16 @@
 #include "stdlib.h"
 #include "string.h"
 
-int main(int argc, char** argv) {
-    if (argc == 1) {
-        puts("error: no input specified");
-        return 1;
-    }
-
-    char* tmp = malloc(2);
-    tmp[0] = '\t';
-    tmp[1] = 0;
-    tmp = strcat(tmp, argv[1]);
-    tmp = strcat(tmp, argc > 2 ? "\t" : "\n");
-    for (int i = 2; i < argc; i++) {
-        tmp = strcat(tmp, argv[i]);
-        tmp = strcat(tmp, i == argc - 1 ? "\n" : " ");
-    }
-
+void process(char* text) {
     FILE* f = fopen("tmp.s", "w");
-    fputs(tmp, f);
+    fputs(text, f);
+    fputs("\n", f);
     fclose(f);
-    free(tmp);
 
     int res = system("as tmp.s -o tmp.o");
     if (res) {
-        printf("error: as returned exit status %d", res);
-        return res;
+        printf("error: as returned exit status %d\n", res);
+        return;
     }
 
     char* buffer = malloc(999);
@@ -39,9 +24,40 @@ int main(int argc, char** argv) {
     for ( ; scount < 4; i++)
         if (buffer[i] == ':')
             scount++;
-    buffer = (char*)((long)buffer + i + 1);
-    for (i = 0; i < strlen(buffer); i++)
-        if (buffer[i] == '\t')
-            buffer[i] = 0;
-    puts(buffer);
+    char* tmp = (char*)((long)buffer + i + 1);
+    for (i = 0; i < strlen(tmp); i++)
+        if (tmp[i] == '\t')
+            tmp[i] = 0;
+    puts(tmp);
+    free(buffer);
+}
+
+int main(int argc, char** argv) {
+    if (argc == 1) {
+        char* prompt = "(len) ";
+        char* tmp = NULL;
+        size_t l = 0;
+        fputs(prompt, stdout);
+        getline(&tmp, &l, stdin);
+        while (strcmp(tmp, "q\n")) {
+            if (strcmp(tmp, "\n"))
+                process(tmp);
+            free(tmp);
+            tmp = NULL;
+            fputs(prompt, stdout);
+            getline(&tmp, &l, stdin);
+        }
+        free(tmp);
+    } else {
+        char* tmp = malloc(2);
+        tmp[0] = '\t';
+        tmp[1] = 0;
+        tmp = strcat(tmp, argv[1]);
+        for (int i = 2; i < argc; i++) {
+            tmp = strcat(tmp, " ");
+            tmp = strcat(tmp, argv[i]);
+        }
+        process(tmp);
+        free(tmp);
+    }
 }
